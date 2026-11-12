@@ -37,15 +37,25 @@ jobs:
           npx cap add android
           npx cap sync
 
-      - name: Build Debug APK
+      - name: Decode Keystore & Naikkan VersionCode
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/g" android/app/build.gradle
+          sed -i 's/versionName "1.0"/versionName "1.0.${{ github.run_number }}"/g' android/app/build.gradle
+
+      - name: Build Signed Release APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=$PWD/app/release.keystore \
+            -Pandroid.injected.signing.store.password=wadirect123 \
+            -Pandroid.injected.signing.key.alias=wadirect \
+            -Pandroid.injected.signing.key.password=wadirect123
 
       - name: Rename APK
         run: |
-          mv android/app/build/outputs/apk/debug/app-debug.apk WA-Direct.apk
+          mv android/app/build/outputs/apk/release/app-release.apk WA-Direct.apk
 
       - name: Publish ke GitHub Releases
         uses: softprops/action-gh-release@v2
@@ -53,6 +63,6 @@ jobs:
           tag_name: v1.0.${{ github.run_number }}
           name: WA Direct v1.0.${{ github.run_number }}
           body: |
-            Rilis otomatis aplikasi **WA Direct** (Build #${{ github.run_number }}).
-            Silakan download file `WA-Direct.apk` di bawah ini untuk install di Android.
+            Rilis resmi aplikasi **WA Direct** (Build #${{ github.run_number }}).
+            Signed release APK — aman ditimpah (update) tanpa menghapus riwayat.
           files: WA-Direct.apk
