@@ -37,10 +37,8 @@ jobs:
           npm install -D @capacitor/assets
           npx cap add android
           
-          # Cari gambar logo apapun di repo & ubah jadi PNG valid
           mkdir -p assets
           IMG_FILE=$(find . -maxdepth 3 -not -path '*/.*' -not -path './android/*' -not -path './node_modules/*' \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" \) | head -n 1)
-          echo "Gambar ditemukan: $IMG_FILE"
           if [ -n "$IMG_FILE" ]; then
             pip install pillow -q
             python3 -c "from PIL import Image; img = Image.open('$IMG_FILE').convert('RGBA'); img.save('assets/icon.png'); img.save('assets/icon-only.png')"
@@ -49,15 +47,9 @@ jobs:
           fi
           npx cap sync
 
-      - name: Setup Keystore & Naikkan VersionCode
+      - name: Decode Keystore Permanen & Naikkan VersionCode
         run: |
-          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
-            echo "${{ secrets.KEYSTORE_BASE64 }}" | tr -d '\n\r ' | base64 -d > android/app/release.keystore || true
-          fi
-          if [ ! -s android/app/release.keystore ]; then
-            rm -f android/app/release.keystore
-            keytool -genkey -v -keystore android/app/release.keystore -alias wadirect -keyalg RSA -keysize 2048 -validity 10000 -storepass wadirect123 -keypass wadirect123 -dname "CN=Wahyu, OU=Dev, O=WFN, L=Tangerang, S=Banten, C=ID"
-          fi
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | tr -d '\n\r ' | base64 -d > android/app/release.keystore
           sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/g" android/app/build.gradle
           sed -i 's/versionName "1.0"/versionName "1.0.${{ github.run_number }}"/g' android/app/build.gradle
 
@@ -82,5 +74,5 @@ jobs:
           name: WA Direct v1.0.${{ github.run_number }}
           body: |
             Rilis resmi aplikasi **WA Direct** (Build #${{ github.run_number }}).
-            Signed release APK dengan ikon kustom.
+            Permanent signed release APK.
           files: WA-Direct.apk
