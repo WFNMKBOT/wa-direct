@@ -36,10 +36,17 @@ jobs:
           npm install
           npm install -D @capacitor/assets
           npx cap add android
-          convert assets/icon.png assets/icon.png || true
-          cp assets/icon.png assets/icon-only.png
-          npx capacitor-assets generate --android --iconBackgroundColor '#06090e' --splashBackgroundColor '#06090e'
-          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          
+          # Cari gambar logo apapun di repo & ubah jadi PNG valid
+          mkdir -p assets
+          IMG_FILE=$(find . -maxdepth 3 -not -path '*/.*' -not -path './android/*' -not -path './node_modules/*' \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" \) | head -n 1)
+          echo "Gambar ditemukan: $IMG_FILE"
+          if [ -n "$IMG_FILE" ]; then
+            pip install pillow -q
+            python3 -c "from PIL import Image; img = Image.open('$IMG_FILE').convert('RGBA'); img.save('assets/icon.png'); img.save('assets/icon-only.png')"
+            npx capacitor-assets generate --android --iconBackgroundColor '#06090e' --splashBackgroundColor '#06090e'
+            rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          fi
           npx cap sync
 
       - name: Setup Keystore & Naikkan VersionCode
