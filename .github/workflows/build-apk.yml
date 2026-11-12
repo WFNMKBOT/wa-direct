@@ -36,7 +36,10 @@ jobs:
           npm install
           npm install -D @capacitor/assets
           npx cap add android
+          convert assets/icon.png assets/icon.png || true
+          cp assets/icon.png assets/icon-only.png
           npx capacitor-assets generate --android --iconBackgroundColor '#06090e' --splashBackgroundColor '#06090e'
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
           npx cap sync
 
       - name: Setup Keystore & Naikkan VersionCode
