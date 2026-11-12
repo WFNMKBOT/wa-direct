@@ -1,0 +1,16 @@
+name: Buat Kunci Permanen
+on: workflow_dispatch
+jobs:
+  kunci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - run: |
+          keytool -genkey -v -keystore release.keystore -alias wadirect -keyalg RSA -keysize 2048 -validity 10000 -storepass wadirect123 -keypass wadirect123 -dname "CN=Wahyu, O=WFN, C=ID"
+          echo "MULAI_COPY_DARI_SINI"
+          base64 -w 0 release.keystore
+          echo ""
+          echo "SAMPAI_SINI_AJA"
